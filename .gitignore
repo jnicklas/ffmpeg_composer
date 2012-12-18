@@ -19,3 +19,4 @@ tmp
 ext/ffmpeg_composer/ffmpeg_composer.bundle
 ext/ffmpeg_composer/ffmpeg_composer.o
 lib/ffmpeg_composer/ffmpeg_composer.bundle
+examples/fixtures/result.mpg
