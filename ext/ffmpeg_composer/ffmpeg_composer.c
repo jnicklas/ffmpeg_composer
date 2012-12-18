@@ -37,8 +37,13 @@ int load_image_into_frame(AVFrame *frame, const char *filename)
 
   retval = 0;
 error:
-  av_freep(image_data);
-  av_free(sws_ctx);
+  if (image_data) {
+    printf("freeing data");
+    av_freep(&image_data[0]);
+  }
+  if (sws_ctx) {
+    av_free(sws_ctx);
+  }
   return retval;
 }
 
@@ -152,9 +157,9 @@ static VALUE ffmpeg_composer_start(VALUE self) {
 static VALUE ffmpeg_composer_finish(VALUE self) {
   int res, error=0;
   size_t res2;
-  FILE *file;
-  AVCodecContext *codec_context= NULL;
-  AVFrame *frame;
+  FILE *file=NULL;
+  AVCodecContext *codec_context=NULL;
+  AVFrame *frame=NULL;
   AVPacket pkt;
   uint8_t endcode[] = { 0, 0, 1, 0xb7 };
   VALUE destination_path = rb_iv_get(self, "@path");
@@ -196,9 +201,9 @@ clean:
 
 static VALUE ffmpeg_composer_add_frame(VALUE self, VALUE source_path, VALUE duration) {
   int res, error=0;
-  FILE *file;
-  AVCodecContext *codec_context= NULL;
-  AVFrame *frame;
+  FILE *file=NULL;
+  AVCodecContext *codec_context=NULL;
+  AVFrame *frame=NULL;
   AVPacket pkt;
   VALUE destination_path = rb_iv_get(self, "@path");
 
