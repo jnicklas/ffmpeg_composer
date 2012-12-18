@@ -15,10 +15,9 @@ spec/reports
 test/tmp
 test/version_tmp
 tmp
-**/*.bundle
-ext/ffmpeg_composer/ffmpeg_composer.bundle
-ext/ffmpeg_composer/ffmpeg_composer.o
-lib/ffmpeg_composer/ffmpeg_composer.bundle
+ext/ffmpeg_composer/*.o
+ext/ffmpeg_composer/*.bundle
 ext/ffmpeg_composer/Makefile
-examples/fixtures/result.mpg
 ext/ffmpeg_composer/mkmf.log
+examples/fixtures/result.mpg
+lib/ffmpeg_composer/ffmpeg_composer.bundle
