@@ -21,3 +21,4 @@ ext/ffmpeg_composer/ffmpeg_composer.o
 lib/ffmpeg_composer/ffmpeg_composer.bundle
 ext/ffmpeg_composer/Makefile
 examples/fixtures/result.mpg
+ext/ffmpeg_composer/mkmf.log
