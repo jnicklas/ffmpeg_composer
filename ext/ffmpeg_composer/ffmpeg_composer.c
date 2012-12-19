@@ -37,13 +37,8 @@ int load_image_into_frame(AVFrame *frame, const char *filename)
 
   retval = 0;
 error:
-  if (image_data) {
-    printf("freeing data");
-    av_freep(&image_data[0]);
-  }
-  if (sws_ctx) {
-    av_free(sws_ctx);
-  }
+  if (image_data) { av_freep(&image_data[0]); }
+  if (sws_ctx) { sws_freeContext(sws_ctx); }
   return retval;
 }
 
