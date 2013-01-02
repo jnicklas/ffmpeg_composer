@@ -1,39 +1,63 @@
 #include <libavutil/imgutils.h>
 #include <libswscale/swscale.h>
 #include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
 
 #include "dbg.h"
-#include "lavfutils.h"
 
 static int sws_flags = SWS_BICUBIC;
 
 int load_image_into_frame(AVFrame *frame, const char *filename)
 {
-  int retval = -1, res;
+  int retval = -1, res, frame_decoded;
+
+  AVInputFormat *format = NULL;
+  AVFormatContext *format_ctx = NULL;
+  AVCodec *codec=NULL;
+  AVCodecContext *codec_ctx=NULL;
+  AVFrame *source_frame=NULL;
+  AVPacket pkt;
   static struct SwsContext *sws_ctx;
-  uint8_t *image_data[4];
-  int linesize[4];
-  int source_width, source_height;
-  enum PixelFormat source_fmt;
 
-  res = ff_load_image(image_data, linesize, &source_width, &source_height, &source_fmt, filename, NULL);
-  check(res >= 0, "failed to load image");
+  av_register_all();
 
-  if (source_fmt != frame->format) {
-    sws_ctx = sws_getContext(source_width, source_height, source_fmt,
-        frame->width, frame->height, frame->format,
-        sws_flags, NULL, NULL, NULL);
-    check(sws_ctx, "unable to initialize scaling context");
+  format = av_find_input_format("image2");
 
-    sws_scale(sws_ctx,
-        (const uint8_t * const *)image_data, linesize,
-        0, frame->height, frame->data, frame->linesize);
-  }
+  res = avformat_open_input(&format_ctx, filename, format, NULL);
+  check(res >= 0, "Failed to open input file '%s'", filename);
+
+  codec_ctx = format_ctx->streams[0]->codec;
+  codec = avcodec_find_decoder(codec_ctx->codec_id);
+  check(codec, "Failed to find codec");
+
+  res = avcodec_open2(codec_ctx, codec, NULL);
+  check(res >= 0, "Failed to open codec");
+
+  source_frame = avcodec_alloc_frame();
+  check(source_frame, "Failed to alloc source frame");
+
+  res = av_read_frame(format_ctx, &pkt);
+  check(res >= 0, "Failed to read frame from file");
+
+  res = avcodec_decode_video2(codec_ctx, source_frame, &frame_decoded, &pkt);
+  check(res >= 0 && frame_decoded, "Failed to decode image from file");
+
+  sws_ctx = sws_getContext(source_frame->width, source_frame->height, source_frame->format,
+      frame->width, frame->height, frame->format,
+      sws_flags, NULL, NULL, NULL);
+  check(sws_ctx, "unable to initialize scaling context");
+
+  sws_scale(sws_ctx,
+      source_frame->data, source_frame->linesize,
+      0, frame->height, frame->data, frame->linesize);
 
   retval = 0;
 error:
-  if (image_data[0]) { av_freep(&image_data[0]); }
-  if (sws_ctx) { sws_freeContext(sws_ctx); }
+  if(codec_ctx) { avcodec_close(codec_ctx); }
+  if(format_ctx) { avformat_close_input(&format_ctx); }
+  if(source_frame) { av_freep(&source_frame); }
+  if(sws_ctx) { sws_freeContext(sws_ctx); }
+  av_free_packet(&pkt);
   return retval;
 }
 
