@@ -8,7 +8,7 @@
 
 static int sws_flags = SWS_BICUBIC;
 
-int load_image_into_frame(AVFrame *frame, const char *filename)
+static int load_image_into_frame(AVFrame *frame, const char *filename)
 {
   int retval = -1, res, frame_decoded;
 
@@ -62,7 +62,7 @@ error:
   return retval;
 }
 
-int write_frame_to_file(FILE *file, AVFrame *frame, AVCodecContext *codec_context, AVPacket *pkt) {
+static int write_frame_to_file(FILE *file, AVFrame *frame, AVCodecContext *codec_context, AVPacket *pkt) {
   int res, got_output;
   av_init_packet(pkt);
   pkt->data = NULL;
@@ -121,7 +121,7 @@ error:
   return -1;
 }
 
-AVCodecContext *get_codec_context(int width, int height, int fps)
+static AVCodecContext *get_codec_context(int width, int height, int fps)
 {
   int res;
   AVCodec *codec;
@@ -151,7 +151,7 @@ error:
   return NULL;
 }
 
-AVFrame *get_av_frame(AVCodecContext *codec_context) {
+static AVFrame *get_av_frame(AVCodecContext *codec_context) {
   int res;
   AVFrame *frame;
 
