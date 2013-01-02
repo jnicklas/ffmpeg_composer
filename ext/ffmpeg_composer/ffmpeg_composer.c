@@ -1,7 +1,5 @@
 #include <ruby.h>
 
-#include <libavutil/imgutils.h>
-
 #include "dbg.h"
 #include "frames.h"
 
@@ -31,7 +29,7 @@ static VALUE ffmpeg_composer_finish(VALUE self) {
   Data_Get_Struct(rb_iv_get(self, "@context"), struct FFCFrameContext, frame_context);
   check(frame_context != NULL, "unabled to retrieve frame context, maybe call #start?");
 
-  res = ffc_write_delayed_frames_to_file(frame_context->file, frame_context->frame, frame_context->codec_context, &frame_context->pkt);
+  res = ffc_write_delayed_frames_to_file(frame_context);
   check(res >= 0, "failed to write delayed frames");
 
   error = 0;
@@ -49,7 +47,7 @@ static VALUE ffmpeg_composer_add_frame(VALUE self, VALUE source_path, VALUE dura
   Data_Get_Struct(rb_iv_get(self, "@context"), struct FFCFrameContext, frame_context);
   check(frame_context != NULL, "unabled to retrieve frame context, maybe call #start?");
 
-  res = ffc_write_image_to_file(frame_context->file, RSTRING_PTR(source_path), NUM2INT(duration), frame_context->frame, frame_context->codec_context, &frame_context->pkt);
+  res = ffc_write_image_to_file(frame_context, RSTRING_PTR(source_path), NUM2INT(duration));
   check(res >= 0, "failed to write image to file");
 
   return Qnil;

@@ -12,11 +12,11 @@ struct FFCFrameContext {
   AVPacket pkt;
 };
 
-struct FFCFrameContext *ffc_alloc_frame_context();
+struct FFCFrameContext *ffc_alloc_frame_context(int height, int width, int fps, const char *destination_path);
 void ffc_free_frame_context(struct FFCFrameContext *frame_context);
 void ffc_close_frame_context(struct FFCFrameContext *frame_context);
 
-int ffc_write_delayed_frames_to_file(FILE *file, AVFrame *frame, AVCodecContext *codec_context, AVPacket *pkt);
-int ffc_write_image_to_file(FILE *file, const char *filename, int count, AVFrame *frame, AVCodecContext *codec_context, AVPacket *pkt);
+int ffc_write_delayed_frames_to_file(struct FFCFrameContext *frame_context);
+int ffc_write_image_to_file(struct FFCFrameContext *frame_context, const char *filename, int count);
 
 #endif

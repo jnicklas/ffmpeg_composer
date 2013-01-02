@@ -83,13 +83,13 @@ error:
   return -1;
 }
 
-int ffc_write_image_to_file(FILE *file, const char *filename, int count, AVFrame *frame, AVCodecContext *codec_context, AVPacket *pkt) {
+int ffc_write_image_to_file(struct FFCFrameContext *frame_context, const char *filename, int count) {
   int res, i;
-  res = load_image_into_frame(frame, filename);
+  res = load_image_into_frame(frame_context->frame, filename);
   check(res >= 0, "failed to load image into frame");
 
   for (i = 0; i < count; i++) {
-    res = write_frame_to_file(file, frame, codec_context, pkt);
+    res = write_frame_to_file(frame_context->file, frame_context->frame, frame_context->codec_context, &frame_context->pkt);
     check(res >= 0, "unable to write frame to file");
   }
 
@@ -98,22 +98,22 @@ error:
   return -1;
 }
 
-int ffc_write_delayed_frames_to_file(FILE *file, AVFrame *frame, AVCodecContext *codec_context, AVPacket *pkt) {
+int ffc_write_delayed_frames_to_file(struct FFCFrameContext *frame_context) {
   int res, got_output;
   size_t res2;
   uint8_t endcode[] = { 0, 0, 1, 0xb7 };
 
   for (got_output = 1; got_output;) {
-    res = avcodec_encode_video2(codec_context, pkt, NULL, &got_output);
+    res = avcodec_encode_video2(frame_context->codec_context, &frame_context->pkt, NULL, &got_output);
     check(res >= 0, "Error encoding frame");
 
     if (got_output) {
-      fwrite(pkt->data, 1, pkt->size, file);
-      av_free_packet(pkt);
+      fwrite(frame_context->pkt.data, 1, frame_context->pkt.size, frame_context->file);
+      av_free_packet(&frame_context->pkt);
     }
   }
 
-  res2 = fwrite(endcode, 1, sizeof(endcode), file);
+  res2 = fwrite(endcode, 1, sizeof(endcode), frame_context->file);
   check(res2 == sizeof(endcode), "failed to write endcode");
 
   return 0;
