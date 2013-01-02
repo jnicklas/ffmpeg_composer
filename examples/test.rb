@@ -2,7 +2,7 @@ require "ffmpeg_composer"
 require "fileutils"
 
 file = File.expand_path("fixtures/result.mpg", File.dirname(__FILE__))
-FileUtils.rm(file)
+FileUtils.rm(file) if File.exist?(file)
 
 frame1 = File.expand_path("fixtures/img0.jpg", File.dirname(__FILE__))
 frame2 = File.expand_path("fixtures/img1.jpg", File.dirname(__FILE__))
