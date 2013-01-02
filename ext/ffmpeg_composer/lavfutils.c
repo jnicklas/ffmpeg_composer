@@ -20,6 +20,7 @@
 
 #include <libavutil/imgutils.h>
 #include "lavfutils.h"
+#include "dbg.h"
 
 int ff_load_image(uint8_t *data[4], int linesize[4],
                   int *w, int *h, enum PixelFormat *pix_fmt,
@@ -30,67 +31,47 @@ int ff_load_image(uint8_t *data[4], int linesize[4],
     AVCodec *codec=NULL;
     AVCodecContext *codec_ctx=NULL;
     AVFrame *frame=NULL;
-    int frame_decoded, ret = 0;
+    int frame_decoded, retVal = -1, res;
     AVPacket pkt;
 
     av_register_all();
 
     iformat = av_find_input_format("image2");
-    if ((ret = avformat_open_input(&format_ctx, filename, iformat, NULL)) < 0) {
-        av_log(log_ctx, AV_LOG_ERROR,
-               "Failed to open input file '%s'\n", filename);
-        return ret;
-    }
+
+    res = avformat_open_input(&format_ctx, filename, iformat, NULL);
+    check(res >= 0, "Failed to open input file '%s'", filename);
 
     codec_ctx = format_ctx->streams[0]->codec;
     codec = avcodec_find_decoder(codec_ctx->codec_id);
-    if (!codec) {
-        av_log(log_ctx, AV_LOG_ERROR, "Failed to find codec\n");
-        ret = AVERROR(EINVAL);
-        goto end;
-    }
+    check(codec, "Failed to find codec");
 
-    if ((ret = avcodec_open2(codec_ctx, codec, NULL)) < 0) {
-        av_log(log_ctx, AV_LOG_ERROR, "Failed to open codec\n");
-        goto end;
-    }
+    res = avcodec_open2(codec_ctx, codec, NULL);
+    check(res >= 0, "Failed to open codec");
 
-    if (!(frame = avcodec_alloc_frame()) ) {
-        av_log(log_ctx, AV_LOG_ERROR, "Failed to alloc frame\n");
-        ret = AVERROR(ENOMEM);
-        goto end;
-    }
+    frame = avcodec_alloc_frame();
+    check(frame, "Failed to alloc frame");
 
-    ret = av_read_frame(format_ctx, &pkt);
-    if (ret < 0) {
-        av_log(log_ctx, AV_LOG_ERROR, "Failed to read frame from file\n");
-        goto end;
-    }
+    res = av_read_frame(format_ctx, &pkt);
+    check(res >= 0, "Failed to read frame from file");
 
-    ret = avcodec_decode_video2(codec_ctx, frame, &frame_decoded, &pkt);
-    if (ret < 0 || !frame_decoded) {
-        av_log(log_ctx, AV_LOG_ERROR, "Failed to decode image from file\n");
-        goto end;
-    }
-    ret = 0;
+    res = avcodec_decode_video2(codec_ctx, frame, &frame_decoded, &pkt);
+    check(res >= 0 && frame_decoded, "Failed to decode image from file");
 
     *w       = frame->width;
     *h       = frame->height;
     *pix_fmt = frame->format;
 
-    if ((ret = av_image_alloc(data, linesize, *w, *h, *pix_fmt, 16)) < 0)
-        goto end;
-    ret = 0;
+    res = av_image_alloc(data, linesize, *w, *h, *pix_fmt, 16);
+    check(res >= 0, "failed to alloc image");
 
     av_image_copy(data, linesize, (const uint8_t **)frame->data, frame->linesize, *pix_fmt, *w, *h);
 
-end:
+    retVal = 0;
+error:
     if(codec_ctx) { avcodec_close(codec_ctx); }
     if(format_ctx) { avformat_close_input(&format_ctx); }
     if(frame) { av_freep(&frame); }
     av_free_packet(&pkt);
 
-    if (ret < 0)
-        av_log(log_ctx, AV_LOG_ERROR, "Error loading image file '%s'\n", filename);
-    return ret;
+    return retVal;
 }
