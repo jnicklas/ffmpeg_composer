@@ -10,6 +10,7 @@ frame3 = File.expand_path("fixtures/img2.jpg", File.dirname(__FILE__))
 frame4 = File.expand_path("fixtures/img3.jpg", File.dirname(__FILE__))
 
 composer = FFmpegComposer.new(file, 25)
+composer.start
 composer.add_frame(frame1, 10)
 composer.add_frame(frame2, 20)
 composer.add_frame(frame3, 50)

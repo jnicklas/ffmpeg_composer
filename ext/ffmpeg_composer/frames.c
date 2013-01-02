@@ -100,6 +100,8 @@ error:
 
 int write_delayed_frames_to_file(FILE *file, AVFrame *frame, AVCodecContext *codec_context, AVPacket *pkt) {
   int res, got_output;
+  size_t res2;
+  uint8_t endcode[] = { 0, 0, 1, 0xb7 };
 
   for (got_output = 1; got_output;) {
     res = avcodec_encode_video2(codec_context, pkt, NULL, &got_output);
@@ -110,6 +112,9 @@ int write_delayed_frames_to_file(FILE *file, AVFrame *frame, AVCodecContext *cod
       av_free_packet(pkt);
     }
   }
+
+  res2 = fwrite(endcode, 1, sizeof(endcode), file);
+  check(res2 == sizeof(endcode), "failed to write endcode");
 
   return 0;
 error:
@@ -163,4 +168,39 @@ AVFrame *get_av_frame(AVCodecContext *codec_context) {
   return frame;
 error:
   return NULL;
+}
+
+struct FFCFrameContext *ffc_alloc_frame_context(int height, int width, int fps, const char *destination_path) {
+  struct FFCFrameContext *frame_context = malloc(sizeof(struct FFCFrameContext));
+
+  frame_context->codec_context = get_codec_context(height, width, fps);
+  check(frame_context->codec_context != NULL, "unable to obtain encoding context");
+
+  frame_context->file = fopen(destination_path, "w");
+  check(frame_context->file != NULL, "could not open destination file %s", destination_path);
+
+  frame_context->frame = get_av_frame(frame_context->codec_context);
+  check(frame_context->frame != NULL, "unable to allocate frame");
+
+  return frame_context;
+error:
+  ffc_free_frame_context(frame_context);
+  return NULL;
+}
+
+void ffc_free_frame_context(struct FFCFrameContext *frame_context) {
+  if(frame_context) {
+    if (frame_context->file) {
+      fclose(frame_context->file);
+    }
+    if (frame_context->codec_context) {
+      avcodec_close(frame_context->codec_context);
+      av_free(frame_context->codec_context);
+    }
+    if (frame_context->frame) {
+      av_freep(&frame_context->frame->data[0]);
+      av_free(frame_context->frame);
+    }
+    free(frame_context);
+  }
 }

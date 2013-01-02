@@ -5,6 +5,16 @@
 #include <libswscale/swscale.h>
 #include <libavcodec/avcodec.h>
 
+struct FFCFrameContext {
+  FILE *file;
+  AVCodecContext *codec_context;
+  AVFrame *frame;
+  AVPacket pkt;
+};
+
+struct FFCFrameContext *ffc_alloc_frame_context();
+void ffc_free_frame_context(struct FFCFrameContext *frame_context);
+
 AVCodecContext *get_codec_context(int width, int height, int fps);
 
 AVFrame *get_av_frame(AVCodecContext *codec_context);
