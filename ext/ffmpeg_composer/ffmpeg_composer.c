@@ -5,8 +5,6 @@
 #include "dbg.h"
 #include "frames.h"
 
-static ID id_read;
-static ID id_new;
 static VALUE c_ffmpeg_composer;
 static VALUE c_ffmpeg_composer_error;
 static VALUE c_ffmpeg_composer_context;
@@ -39,6 +37,7 @@ static VALUE ffmpeg_composer_finish(VALUE self) {
   error = 0;
 error:
   rb_iv_set(self, "@context", Qnil);
+  if(frame_context) { ffc_close_frame_context(frame_context); }
   if(error) { rb_raise(c_ffmpeg_composer_error, "unable to finish composition"); }
   return Qnil;
 }
@@ -67,7 +66,5 @@ void Init_ffmpeg_composer(void) {
   rb_define_method(c_ffmpeg_composer, "start", ffmpeg_composer_start, 0);
   rb_define_method(c_ffmpeg_composer, "finish", ffmpeg_composer_finish, 0);
   rb_define_method(c_ffmpeg_composer, "add_frame", ffmpeg_composer_add_frame, 2);
-  id_read = rb_intern("read");
-  id_new = rb_intern("new");
 }
 

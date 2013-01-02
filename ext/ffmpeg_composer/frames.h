@@ -14,6 +14,7 @@ struct FFCFrameContext {
 
 struct FFCFrameContext *ffc_alloc_frame_context();
 void ffc_free_frame_context(struct FFCFrameContext *frame_context);
+void ffc_close_frame_context(struct FFCFrameContext *frame_context);
 
 AVCodecContext *get_codec_context(int width, int height, int fps);
 

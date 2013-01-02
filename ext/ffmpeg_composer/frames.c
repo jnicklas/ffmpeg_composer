@@ -188,7 +188,7 @@ error:
   return NULL;
 }
 
-void ffc_free_frame_context(struct FFCFrameContext *frame_context) {
+void ffc_close_frame_context(struct FFCFrameContext *frame_context) {
   if(frame_context) {
     if (frame_context->file) {
       fclose(frame_context->file);
@@ -201,6 +201,15 @@ void ffc_free_frame_context(struct FFCFrameContext *frame_context) {
       av_freep(&frame_context->frame->data[0]);
       av_free(frame_context->frame);
     }
+    frame_context->codec_context = NULL;
+    frame_context->file = NULL;
+    frame_context->frame = NULL;
+  }
+}
+
+void ffc_free_frame_context(struct FFCFrameContext *frame_context) {
+  if(frame_context) {
+    ffc_close_frame_context(frame_context);
     free(frame_context);
   }
 }
