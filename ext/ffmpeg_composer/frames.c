@@ -4,6 +4,7 @@
 #include <libavformat/avformat.h>
 
 #include "dbg.h"
+#include "frames.h"
 
 static int sws_flags = SWS_BICUBIC;
 
@@ -48,7 +49,7 @@ int load_image_into_frame(AVFrame *frame, const char *filename)
   check(sws_ctx, "unable to initialize scaling context");
 
   sws_scale(sws_ctx,
-      source_frame->data, source_frame->linesize,
+      (const uint8_t * const *)source_frame->data, source_frame->linesize,
       0, frame->height, frame->data, frame->linesize);
 
   retval = 0;
