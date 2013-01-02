@@ -83,7 +83,7 @@ error:
   return -1;
 }
 
-int write_image_to_file(FILE *file, const char *filename, int count, AVFrame *frame, AVCodecContext *codec_context, AVPacket *pkt) {
+int ffc_write_image_to_file(FILE *file, const char *filename, int count, AVFrame *frame, AVCodecContext *codec_context, AVPacket *pkt) {
   int res, i;
   res = load_image_into_frame(frame, filename);
   check(res >= 0, "failed to load image into frame");
@@ -98,7 +98,7 @@ error:
   return -1;
 }
 
-int write_delayed_frames_to_file(FILE *file, AVFrame *frame, AVCodecContext *codec_context, AVPacket *pkt) {
+int ffc_write_delayed_frames_to_file(FILE *file, AVFrame *frame, AVCodecContext *codec_context, AVPacket *pkt) {
   int res, got_output;
   size_t res2;
   uint8_t endcode[] = { 0, 0, 1, 0xb7 };
