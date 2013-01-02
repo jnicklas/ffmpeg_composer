@@ -15,7 +15,7 @@ static VALUE ffmpeg_composer_start(VALUE self) {
 }
 
 static VALUE ffmpeg_composer_finish(VALUE self) {
-  int res, error=0;
+  int res, error=1;
   size_t res2;
   FILE *file=NULL;
   AVCodecContext *codec_context=NULL;
@@ -40,10 +40,8 @@ static VALUE ffmpeg_composer_finish(VALUE self) {
   res2 = fwrite(endcode, 1, sizeof(endcode), file);
   check(res2 == sizeof(endcode), "failed to write endcode");
 
-  goto clean;
+  error = 0;
 error:
-  error = 1;
-clean:
   if (file) {
     fclose(file);
   }
@@ -60,7 +58,7 @@ clean:
 }
 
 static VALUE ffmpeg_composer_add_frame(VALUE self, VALUE source_path, VALUE duration) {
-  int res, error=0;
+  int res, error=1;
   FILE *file=NULL;
   AVCodecContext *codec_context=NULL;
   AVFrame *frame=NULL;
@@ -79,10 +77,8 @@ static VALUE ffmpeg_composer_add_frame(VALUE self, VALUE source_path, VALUE dura
   res = write_image_to_file(file, RSTRING_PTR(source_path), NUM2INT(duration), frame, codec_context, &pkt);
   check(res >= 0, "failed to write image to file");
 
-  goto clean;
+  error = 0;
 error:
-  error = 1;
-clean:
   if (file) {
     fclose(file);
   }
