@@ -2,10 +2,10 @@ require "ffmpeg_composer/ffmpeg_composer"
 require "ffmpeg_composer/version"
 
 class FFmpegComposer
-  def initialize(path, fps)
+  def initialize(path, options={})
     @path = path
-    @fps = fps
-    @width = 320
-    @height = 240
+    @fps = options.fetch(:fps)
+    @width = options.fetch(:width)
+    @height = options.fetch(:height)
   end
 end
